@@ -16,8 +16,8 @@ if __name__ == "__main__":
   palette = baseline_palette + models_color
 
   filenames = {
-      f'baseline_{r}': f'long_eval_{r}x{r}_64x64.nc'
-      for r in [64, 128, 256, 512, 1024, 2048]
+    f'baseline_{r}': f'long_eval_{r}x{r}_64x64.nc'
+    for r in [64, 128, 256, 512, 1024, 2048]
   }
   filenames['learned_interp_64'] = 'learned_interpolation_long_eval_64x64_64x64.nc'
   filenames['train'] = f'train_2048x2048_64x64.nc'

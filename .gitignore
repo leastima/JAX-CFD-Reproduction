@@ -1,2 +1,35 @@
-*pyc
-jax-cfd
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+.ipynb_checkpoints/
+
+# JAX / XLA cache
+/tmp/
+.cache/
+
+# Large data / model checkpoints (too big for git)
+content/
+models_*/
+model/
+model_*/
+figs/
+new_figs/
+samples/
+
+# Logs (auto-generated, not needed for reproducibility)
+logs/
+
+# Results (generated output)
+results/
+
+# Conda env files not needed for clone-and-run
+*.yml
+*.txt.bak
+
+# jax-cfd submodule is managed separately
+jax-cfd/

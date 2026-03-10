@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
   baseline_filenames = {
-      f'baseline_{r}': f'baseline_{r}x{r}.nc'
-      for r in [64, 128, 256, 512, 1024, 2048]
+    f'baseline_{r}': f'baseline_{r}x{r}.nc'
+    for r in [64, 128, 256, 512, 1024, 2048]
   }
   learned_filenames = {
-      f'learned_interp_{r}': f'learned_{r}x{r}.nc'
-      for r in [32, 64, 128]
+    f'learned_interp_{r}': f'learned_{r}x{r}.nc'
+    for r in [32, 64, 128]
   }
 
   data_path = "/global/cfs/cdirs/m3898/zhiqings/cfd"
@@ -36,11 +36,11 @@ if __name__ == "__main__":
         fout.write(str(models[k].__getattr__(attr)) + "\n")
       fout.write("\n\n\n\n\n")
 
-      ds = models[k]
+    ds = models[k]
 
-      (ds[dict(sample=0)].pipe(vorticity).head(time=200).thin(time=20).transpose()
-       .plot.imshow(col='time', cmap=seaborn.cm.icefire, robust=True, col_wrap=5))
-      plt.savefig("../samples/%s" % k)
+    (ds[dict(sample=0)].pipe(vorticity).head(time=200).thin(time=20).transpose()
+     .plot.imshow(col='time', cmap=seaborn.cm.icefire, robust=True, col_wrap=5))
+    plt.savefig("../samples/%s" % k)
 
     for k, v in learned_filenames.items():
       ds = xarray.open_dataset(os.path.join(data_path, f'content/kolmogorov_re_1000_fig1/{v}'), chunks={'time': '100MB'})

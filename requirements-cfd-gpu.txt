@@ -1,0 +1,20 @@
+# JAX-CFD GPU env deps (install after jax[cuda13] or jax[cuda12])
+tensorflow>=2.5
+tensorflow-datasets>=4.2
+torch
+dm-tree
+numpy
+scipy
+tree-math
+dm-haiku
+einops
+gin-config
+flax
+optax
+absl-py
+pandas
+xarray
+matplotlib
+seaborn
+Pillow
+dask

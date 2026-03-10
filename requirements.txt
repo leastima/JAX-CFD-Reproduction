@@ -1,0 +1,37 @@
+# Core JAX (choose based on your CUDA version)
+# CUDA 13 (RTX 4000 / Blackwell / H100):
+jax[cuda13]
+# CUDA 12 (A100 / V100 / RTX 3000-series): comment above, uncomment below:
+# jax[cuda12]
+
+# Fluid dynamics library (installed from submodule, see setup_env.sh)
+# jax-cfd  # installed via: pip install -e ./jax-cfd
+
+# Model / training
+dm-haiku>=0.0.10
+gin-config>=0.5
+flax>=0.7
+optax>=0.1
+orbax-checkpoint
+
+# Data
+numpy
+scipy
+xarray
+netCDF4
+dask
+pandas
+tree-math
+dm-tree
+
+# Viz / notebook
+matplotlib
+Pillow
+seaborn
+jupyter
+
+# Misc
+absl-py
+einops
+jmp
+chex

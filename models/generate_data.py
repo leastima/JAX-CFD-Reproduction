@@ -20,7 +20,10 @@ import tree
 
 import gin
 import tensorflow.compat.v1 as tf
-import jax.lib.xla_bridge as xb
+try:
+  import jax.lib.xla_bridge as xb
+except ModuleNotFoundError:
+  import jax._src.xla_bridge as xb
 import pkg_resources
 import jax_cfd.base as cfd
 import jax_cfd.ml as cfd_ml

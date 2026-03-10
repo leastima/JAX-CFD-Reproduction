@@ -169,7 +169,9 @@ def my_forward_flex_tower_factory(
     return hk.Sequential(components)(inputs)
 
   module = hk.to_module(forward_pass)(name=name)
-  return hk.experimental.named_call(module, name=name)
+  if hasattr(getattr(hk, 'experimental', None), 'named_call'):
+    return hk.experimental.named_call(module, name=name)
+  return module
 
 
 def dropout_layer(inputs, dropout_rate, is_training):
@@ -201,7 +203,9 @@ def my_residual_block_tower_factory(
     return output_scale_fn(last_block(inputs), list(range(ndim)))
 
   module = hk.to_module(forward_pass)(name=name)
-  return hk.experimental.named_call(module, name=name)
+  if hasattr(getattr(hk, 'experimental', None), 'named_call'):
+    return hk.experimental.named_call(module, name=name)
+  return module
 
 
 @gin.configurable

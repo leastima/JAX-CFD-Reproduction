@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ def _check_min_version(mod: types.ModuleType, min_ver: str):
   actual_ver = getattr(mod, '__version__')
   if version.parse(actual_ver) < version.parse(min_ver):
     raise ValueError(
-        f'{mod.__name__} >= {min_ver} is required, you have {actual_ver}')
+      f'{mod.__name__} >= {min_ver} is required, you have {actual_ver}')
 
 
 def check_versions():
@@ -89,6 +89,8 @@ class DataLoader(object):
                transpose: bool = False,
                zeros: bool = False,
                num_workers: int = 32,
+               max_samples: int = -1,
+               max_time_steps: int = -1,
                ):
     self.split = split
     self.zeros = zeros
@@ -103,6 +105,10 @@ class DataLoader(object):
 
     if not self.zeros:
       self.data = xarray.open_dataset(split)
+      if max_samples > 0:
+        self.data = self.data.isel(sample=slice(0, max_samples))
+      if max_time_steps > 0:
+        self.data = self.data.isel(time=slice(0, max_time_steps))
       logging.info(str(self.data))
       for att in self.data.attrs:
         logging.info(f'{att}: {self.data.attrs[att]}')
@@ -134,6 +140,7 @@ class DataLoader(object):
       else:
         num_batches = 1000 // np.prod(self.batch_dims)
         yield from it.repeat(batch, num_batches)
+      return
 
     start, end, max_len = _shard(self.num_examples, jax.host_id(), jax.host_count())
     logging.info(f'Start: {start}, End:{end}')
@@ -144,8 +151,8 @@ class DataLoader(object):
                                 self.encode_steps, self.decode_steps, from_=start, to_=end)
 
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=total_batch_size.item(), shuffle=self.is_training,
-        num_workers=self.num_workers, drop_last=self.is_training)
+      dataset, batch_size=total_batch_size.item(), shuffle=self.is_training,
+      num_workers=self.num_workers, drop_last=self.is_training)
 
     if self.is_training:
       while True:
@@ -194,73 +201,13 @@ class DataLoader(object):
         remaining_items -= np.prod(self.batch_dims)
         yield batch
 
-    # if self.is_training:
-    #   shuffle_idx = np.arange(start, end)
-    #   while True:
-    #     np.random.shuffle(shuffle_idx)
-    #     for k in range(0, self.num_examples // total_batch_size):
-    #       inputs = []
-    #       outputs = []
-    #       for j in range(total_batch_size):
-    #         full_idx = shuffle_idx[j]
-    #
-    #         outputs.append(np.stack([u, v], axis=-1))
-    #       inputs = np.stack(inputs, axis=0)
-    #       outputs = np.stack(outputs, axis=0)
-    #       inputs = inputs.reshape(list(self.batch_dims) + list(inputs.shape[1:]))
-    #       outputs = outputs.reshape(list(self.batch_dims) + list(outputs.shape[1:]))
-    #
-    #       inputs = (inputs[..., 0], inputs[..., 1])
-    #       outputs = (outputs[..., 0], outputs[..., 1])
-    #
-    #       batch = {"inputs": inputs, "outputs": outputs}
-    #       yield batch
-    # else:
-    #   if self.num_examples % total_batch_size != 0:
-    #     raise ValueError(f'Test/valid must be divisible by {total_batch_size}')
-    #   shuffle_idx = np.arange(start, end)
-    #   for i in range(0, self.num_examples // total_batch_size):
-    #     inputs = []
-    #     outputs = []
-    #     for j in range(total_batch_size):
-    #       full_idx = shuffle_idx[j]
-    #       sample_id = full_idx % self.num_sample
-    #       seq_id = full_idx // self.num_sample
-    #
-    #       beg_idx = seq_id
-    #       mid_idx = beg_idx + self.encode_steps
-    #       end_idx = mid_idx + self.decode_steps
-    #       sliced_input = self.data[dict(sample=sample_id, time=slice(beg_idx, mid_idx))]
-    #       u = sliced_input.variables['u'].values
-    #       v = sliced_input.variables['v'].values
-    #       inputs.append(np.stack([u, v], axis=-1))
-    #       sliced_ouput = self.data[dict(sample=sample_id, time=slice(mid_idx, end_idx))]
-    #       u = sliced_ouput.variables['u'].values
-    #       v = sliced_ouput.variables['v'].values
-    #       outputs.append(np.stack([u, v], axis=-1))
-    #
-    #     inputs = np.stack(inputs, axis=0)
-    #     outputs = np.stack(outputs, axis=0)
-    #     inputs = inputs.reshape(list(self.batch_dims) + list(inputs.shape[1:]))
-    #     outputs = outputs.reshape(list(self.batch_dims) + list(outputs.shape[1:]))
-    #
-    #     inputs = (inputs[..., 0], inputs[..., 1])
-    #     outputs = (outputs[..., 0], outputs[..., 1])
-    #     batch = {"inputs": inputs, "outputs": outputs}
-    #     yield batch
-
-    # def cast_fn(batch):
-    #   batch = dict(**batch)
-    #   batch['images'] = tf.cast(batch['images'], tf.dtypes.as_dtype(dtype))
-    #   return batch
-
 
 def _device_put_sharded(sharded_tree, devices):
-  leaves, treedef = jax.tree_flatten(sharded_tree)
+  leaves, treedef = jax.tree_util.tree_flatten(sharded_tree)
   n = leaves[0].shape[0]
   return jax.device_put_sharded(
-      [jax.tree_unflatten(treedef, [l[i] for l in leaves]) for i in range(n)],
-      devices)
+    [jax.tree_util.tree_unflatten(treedef, [l[i] for l in leaves]) for i in range(n)],
+    devices)
 
 
 def double_buffer(ds: Iterable[Batch]) -> Generator[Batch, None, None]:
